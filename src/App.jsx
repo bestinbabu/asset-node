@@ -19,6 +19,8 @@ function App() {
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
+          {/* Admin Dashboard Route */}
+          <Route path="/admin-dashboard" element={<div style={{ padding: "2rem", textAlign: "center" }}>Admin Dashboard Page (Under Construction)</div>} />
         </Routes>
       </div>
     </Router>
