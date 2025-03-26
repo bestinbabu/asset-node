@@ -1,3 +1,4 @@
+// src/pages/AdminLoginPage.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase"; // Import Firestore DB
@@ -18,7 +19,7 @@ const AdminLoginPage = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Check if the user is in the "admin" collection
+      // Check if the user is in the "admin" collection
       const adminRef = doc(db, "admin", user.uid);
       const adminSnap = await getDoc(adminRef);
 
@@ -29,6 +30,7 @@ const AdminLoginPage = () => {
       console.log("Admin logged in successfully!");
       navigate("/admin-dashboard"); // Redirect to Admin Dashboard
     } catch (err) {
+      console.error(err);
       setError(err.message);
     }
   };
@@ -36,7 +38,6 @@ const AdminLoginPage = () => {
   return (
     <div style={styles.container}>
       <button onClick={() => navigate(-1)} style={styles.backButton}>Back</button>
-
       <h2>Admin Login</h2>
       {error && <p style={styles.error}>{error}</p>}
       <form onSubmit={handleLogin} style={styles.form}>
@@ -66,33 +67,38 @@ const AdminLoginPage = () => {
 };
 
 const styles = {
-  container: { padding: "2rem", textAlign: "center" },
+  container: { 
+    padding: '2rem',
+    textAlign: 'center',
+    position: 'relative'
+  },
   backButton: {
-    position: "absolute",
-    top: "1rem",
-    left: "1rem",
-    padding: "0.5rem 1rem",
-    cursor: "pointer",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "1rem",
-  },
-  input: {
-    padding: "0.5rem",
-    fontSize: "1rem",
-    width: "300px",
-  },
-  button: {
-    padding: "0.5rem 1rem",
-    fontSize: "1rem",
-    cursor: "pointer",
+    position: 'absolute',
+    top: '1rem',
+    left: '1rem',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer'
   },
   error: {
-    color: "red",
+    color: 'red',
+    margin: '1rem 0'
   },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem'
+  },
+  input: {
+    padding: '0.5rem',
+    fontSize: '1rem',
+    width: '300px'
+  },
+  button: {
+    padding: '0.5rem 1rem',
+    fontSize: '1rem',
+    cursor: 'pointer'
+  }
 };
 
 export default AdminLoginPage;

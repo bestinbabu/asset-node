@@ -7,6 +7,7 @@ import UserLoginPage from './pages/UserLoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import SignupPage from './pages/SignupPage';
 import UserDashboard from './pages/user/UserDashboard';
+import AdminDashboard from './pages/Admin/AdminDashboard'; // Import the admin dashboard
 
 function App() {
   return (
@@ -19,6 +20,8 @@ function App() {
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
+          {/* Updated Admin Dashboard route */}
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
