@@ -1,10 +1,10 @@
-// src/pages/UserLoginPage.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase"; // Import Firebase authentication
+import { auth, db } from "../firebase"; // Import Firestore DB
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore"; // Firestore Methods
 
-const UserLoginPage = () => {
+const AdminLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,9 +15,19 @@ const UserLoginPage = () => {
     setError(""); // Clear previous errors
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("User logged in successfully!");
-      navigate("/"); // Redirect to dashboard or home page
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ✅ Check if the user is in the "admin" collection
+      const adminRef = doc(db, "admin", user.uid);
+      const adminSnap = await getDoc(adminRef);
+
+      if (!adminSnap.exists()) {
+        throw new Error("Access Denied: You are not an admin.");
+      }
+
+      console.log("Admin logged in successfully!");
+      navigate("/admin-dashboard"); // Redirect to Admin Dashboard
     } catch (err) {
       setError(err.message);
     }
@@ -85,4 +95,4 @@ const styles = {
   },
 };
 
-export default UserLoginPage;
+export default AdminLoginPage;

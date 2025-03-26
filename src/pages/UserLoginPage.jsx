@@ -1,8 +1,8 @@
-// src/pages/UserLoginPage.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase"; // Import Firebase authentication
+import { auth, db } from "../firebase"; // Import Firestore DB
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore"; // Firestore Methods
 
 const UserLoginPage = () => {
   const [email, setEmail] = useState("");
@@ -15,9 +15,19 @@ const UserLoginPage = () => {
     setError(""); // Clear previous errors
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ✅ Check if the user is in the "users" collection
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error("Access Denied: You are not registered as a user.");
+      }
+
       console.log("User logged in successfully!");
-      navigate("/dashboard"); // Redirect to dashboard or home page
+      navigate("/dashboard"); // Redirect to User Dashboard
     } catch (err) {
       setError(err.message);
     }
