@@ -36,3 +36,20 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add to your global CSS or a dedicated UserDashboard.css */
+.user-dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 200px;
+  background: #f0f0f0;
+  padding: 1rem;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 1rem;
+}

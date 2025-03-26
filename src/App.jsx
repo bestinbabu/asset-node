@@ -6,6 +6,7 @@ import HomePage from './pages/Home/HomePage'; // Your existing homepage
 import UserLoginPage from './pages/UserLoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import SignupPage from './pages/SignupPage';
+import UserDashboard from './pages/user/UserDashboard';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/user-login" element={<UserLoginPage />} />
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
         </Routes>
       </div>
     </Router>
