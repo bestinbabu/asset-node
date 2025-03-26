@@ -122,25 +122,37 @@ const UserDashboard = () => {
   }, [db, userId]);
 
   // Handle a device request: prompt for purpose and add a new document to the "requests" collection.
-  const handleRequestDevice = async (device) => {
-    const purpose = prompt("Please enter the purpose for this request:");
-    if (!purpose) return;
+  // Inside src/pages/UserDashboard.jsx
 
-    try {
-      const requestsCol = collection(db, "requests");
-      await addDoc(requestsCol, {
-        userId,
-        deviceId: device.id,
+const handleRequestDevice = async (device) => {
+  const purpose = prompt("Please enter the purpose for this request:");
+  if (!purpose) return;
+
+  try {
+    // Construct the data object
+    const data = {
+      deviceSpec: {
+        id: device.id,
         deviceType: device.deviceType,
-        purpose: "i need it",
+        osType: device.osType,
+        model: device.configuration?.model || "Device"
+      },
+      from: userId, // current user's UID
+      purpose: purpose
+    };
 
-      });
-      alert("Request submitted successfully!");
-    } catch (error) {
-      console.error("Error submitting request:", error);
-      alert("submitted successfully.");
-    }
-  };
+    // Write the JSON document to a specific document path in "requests"
+    // Here we use the current user's UID as the document ID for example,
+    // which would create a document at /requests/<userId>
+    await setDoc(doc(db, "requests", userId), data);
+
+    alert("Request submitted successfully!");
+  } catch (error) {
+    console.error("Error submitting request:", error);
+    alert("Failed to submit request. Please try again.");
+  }
+};
+
 
   // Handle releasing a device: update device availability and remove it from the user's list.
   const handleReleaseDevice = async (device) => {
