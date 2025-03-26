@@ -1,99 +1,148 @@
 import { useState, useEffect } from 'react'
-import AvailableDevices from './AvailableDevices'
-import RequestedDevices from './RequestedDevices'
-import ReportFaulty from './ReportFaulty'
-import AllocatedResources from './AllocatedResources'
-import ReturnDevice from './ReturnDevice'
-
-const initialDeviceData = {
-  available: [
-    { id: 1, name: 'Laptop', type: 'MacBook Pro', status: 'Available' },
-    { id: 2, name: 'Tablet', type: 'iPad Pro', status: 'Available' },
-  ],
-  allocated: [
-    { id: 3, name: 'Phone', type: 'iPhone 15', allocationDate: '2024-03-01' },
-  ],
-  requested: [
-    { id: 4, name: 'Monitor', type: '4K Display', requestDate: '2024-03-10' },
-  ],
-  faulty: [],
-}
+import { getDatabase, ref, get } from 'firebase/database'
 
 const UserDashboard = () => {
-  const [deviceData, setDeviceData] = useState(initialDeviceData)
-  const [selectedSection, setSelectedSection] = useState('available')
+  const [deviceTypes, setDeviceTypes] = useState([])
+  const [osTypes, setOsTypes] = useState([])
+  const [availableDevices, setAvailableDevices] = useState([])
+  const [selectedDeviceType, setSelectedDeviceType] = useState('')
+  const [selectedOsType, setSelectedOsType] = useState('')
+  const [requestedDevices, setRequestedDevices] = useState([])
+  const [allocatedDevices, setAllocatedDevices] = useState([])
+  const [faultyDevices, setFaultyDevices] = useState([])
 
   useEffect(() => {
-    // In a real app, you would fetch from API instead of using static data
+    const fetchData = async () => {
+      const db = getDatabase()
+      const deviceTypesRef = ref(db, 'deviceTypes')
+      const osTypesRef = ref(db, 'osTypes')
+
+      const deviceTypesSnap = await get(deviceTypesRef)
+      const osTypesSnap = await get(osTypesRef)
+
+      setDeviceTypes(deviceTypesSnap.exists() ? deviceTypesSnap.val() : [])
+      setOsTypes(osTypesSnap.exists() ? osTypesSnap.val() : [])
+    }
+
+    fetchData()
   }, [])
 
+  useEffect(() => {
+    if (selectedDeviceType && selectedOsType) {
+      const fetchDevices = async () => {
+        const db = getDatabase()
+        const devicesRef = ref(
+          db,
+          `devices/${selectedDeviceType}/${selectedOsType}`
+        )
+        const devicesSnap = await get(devicesRef)
+        setAvailableDevices(devicesSnap.exists() ? devicesSnap.val() : [])
+      }
+      fetchDevices()
+    }
+  }, [selectedDeviceType, selectedOsType])
+
   const handleRequestDevice = (deviceId, purpose) => {
-    setDeviceData((prev) => {
-      const updatedDevices = prev.available.map((device) =>
-        device.id === deviceId ? { ...device, status: 'Unavailable' } : device
-      )
-
-      return {
-        ...prev,
-        available: updatedDevices,
-        requested: [
-          ...prev.requested,
-          { id: deviceId, purpose, requestDate: new Date().toISOString() },
-        ],
-      }
-    })
+    console.log(`Requesting device ${deviceId} for purpose: ${purpose}`)
+    setRequestedDevices([
+      ...requestedDevices,
+      { id: deviceId, purpose, requestDate: new Date().toISOString() },
+    ])
   }
 
-  function handleReportFaulty(deviceId, reason) {
-    setDeviceData((prev) => ({
-      ...prev,
-      faulty: [...prev.faulty, { id: Date.now(), deviceId, reason }],
-    }))
+  const handleReportFaulty = (deviceId, reason) => {
+    setFaultyDevices([...faultyDevices, { id: Date.now(), deviceId, reason }])
   }
 
-  function handleReturn(deviceId) {
-    setDeviceData((prev) => {
-      const returned = prev.allocated.find((d) => d.id === deviceId)
-      return {
-        ...prev,
-        allocated: prev.allocated.filter((d) => d.id !== deviceId),
-        available: [...prev.available, { ...returned, status: 'Available' }],
-      }
-    })
-  }
-
-  const sections = {
-    available: (
-      <AvailableDevices
-        devices={deviceData.available}
-        onRequestDevice={handleRequestDevice}
-      />
-    ),
-    requested: <RequestedDevices requests={deviceData.requested} />,
-    allocated: <AllocatedResources allocated={deviceData.allocated} />,
-    report: <ReportFaulty onReport={handleReportFaulty} />,
-    return: (
-      <ReturnDevice allocated={deviceData.allocated} onReturn={handleReturn} />
-    ),
+  const handleReturnDevice = (deviceId) => {
+    setAllocatedDevices(
+      allocatedDevices.filter((device) => device.id !== deviceId)
+    )
+    setAvailableDevices([
+      ...availableDevices,
+      { id: deviceId, status: 'Available' },
+    ])
   }
 
   return (
     <div className="user-dashboard">
-      <aside className="sidebar">
-        <nav>
+      <h2>Device Management</h2>
+      <label>Device Type:</label>
+      <select onChange={(e) => setSelectedDeviceType(e.target.value)}>
+        <option value="">Select Device Type</option>
+        {deviceTypes.map((type) => (
+          <option key={type} value={type}>
+            {type}
+          </option>
+        ))}
+      </select>
+
+      {selectedDeviceType && (
+        <>
+          <label>OS Type:</label>
+          <select onChange={(e) => setSelectedOsType(e.target.value)}>
+            <option value="">Select OS Type</option>
+            {osTypes.map((os) => (
+              <option key={os} value={os}>
+                {os}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+
+      {selectedDeviceType && selectedOsType && (
+        <div>
+          <h3>Available Devices</h3>
           <ul>
-            {Object.keys(sections).map((section) => (
-              <li key={section} onClick={() => setSelectedSection(section)}>
-                <button className={selectedSection === section ? 'active' : ''}>
-                  {section.charAt(0).toUpperCase() + section.slice(1)}
+            {availableDevices.map((device) => (
+              <li key={device.id}>
+                {device.name} - {device.type}
+                <button
+                  onClick={() => handleRequestDevice(device.id, 'General Use')}
+                >
+                  Request
                 </button>
               </li>
             ))}
           </ul>
-        </nav>
-      </aside>
+        </div>
+      )}
 
-      <main className="dashboard-content">{sections[selectedSection]}</main>
+      <h3>Requested Devices</h3>
+      <ul>
+        {requestedDevices.map((device) => (
+          <li key={device.id}>
+            {device.id} - Requested on {device.requestDate}
+          </li>
+        ))}
+      </ul>
+
+      <h3>Allocated Devices</h3>
+      <ul>
+        {allocatedDevices.map((device) => (
+          <li key={device.id}>
+            {device.id}
+            <button onClick={() => handleReturnDevice(device.id)}>
+              Return
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Report Faulty Device</h3>
+      <button onClick={() => handleReportFaulty(1, 'Screen Issue')}>
+        Report Faulty
+      </button>
+
+      <h3>Faulty Devices</h3>
+      <ul>
+        {faultyDevices.map((device) => (
+          <li key={device.id}>
+            {device.deviceId} - {device.reason}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
