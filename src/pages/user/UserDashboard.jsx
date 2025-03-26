@@ -8,8 +8,6 @@ const UserDashboard = () => {
   const [selectedDeviceType, setSelectedDeviceType] = useState('')
   const [selectedOsType, setSelectedOsType] = useState('')
   const [requestedDevices, setRequestedDevices] = useState([])
-  const [allocatedDevices, setAllocatedDevices] = useState([])
-  const [faultyDevices, setFaultyDevices] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,66 +40,74 @@ const UserDashboard = () => {
     }
   }, [selectedDeviceType, selectedOsType])
 
-  const handleRequestDevice = (deviceId, purpose) => {
-    console.log(`Requesting device ${deviceId} for purpose: ${purpose}`)
+  const handleRequestDevice = (deviceId) => {
+    const purpose = prompt('Please enter the purpose for this request:')
+    if (!purpose) return
+
     setRequestedDevices([
       ...requestedDevices,
-      { id: deviceId, purpose, requestDate: new Date().toISOString() },
-    ])
-  }
-
-  const handleReportFaulty = (deviceId, reason) => {
-    setFaultyDevices([...faultyDevices, { id: Date.now(), deviceId, reason }])
-  }
-
-  const handleReturnDevice = (deviceId) => {
-    setAllocatedDevices(
-      allocatedDevices.filter((device) => device.id !== deviceId)
-    )
-    setAvailableDevices([
-      ...availableDevices,
-      { id: deviceId, status: 'Available' },
+      {
+        id: deviceId,
+        purpose,
+        requestDate: new Date().toLocaleString(),
+      },
     ])
   }
 
   return (
     <div className="user-dashboard">
       <h2>Device Management</h2>
-      <label>Device Type:</label>
-      <select onChange={(e) => setSelectedDeviceType(e.target.value)}>
-        <option value="">Select Device Type</option>
-        {deviceTypes.map((type) => (
-          <option key={type} value={type}>
-            {type}
-          </option>
-        ))}
-      </select>
 
-      {selectedDeviceType && (
-        <>
-          <label>OS Type:</label>
-          <select onChange={(e) => setSelectedOsType(e.target.value)}>
-            <option value="">Select OS Type</option>
-            {osTypes.map((os) => (
-              <option key={os} value={os}>
-                {os}
+      <div className="selection-filters">
+        <div className="filter-group">
+          <label>Device Type:</label>
+          <select
+            value={selectedDeviceType}
+            onChange={(e) => setSelectedDeviceType(e.target.value)}
+          >
+            <option value="">Select Device Type</option>
+            {deviceTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
             ))}
           </select>
-        </>
-      )}
+        </div>
+
+        {selectedDeviceType && (
+          <div className="filter-group">
+            <label>OS Type:</label>
+            <select
+              value={selectedOsType}
+              onChange={(e) => setSelectedOsType(e.target.value)}
+            >
+              <option value="">Select OS Type</option>
+              {osTypes.map((os) => (
+                <option key={os} value={os}>
+                  {os}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {selectedDeviceType && selectedOsType && (
-        <div>
-          <h3>Available Devices</h3>
+        <div className="available-devices">
+          <h3>
+            Available {selectedDeviceType} Devices ({selectedOsType})
+          </h3>
           <ul>
             {availableDevices.map((device) => (
               <li key={device.id}>
-                {device.name} - {device.type}
+                <span>
+                  {device.name} - {device.specs?.ram || 'N/A'} RAM
+                </span>
                 <button
-                  onClick={() => handleRequestDevice(device.id, 'General Use')}
+                  onClick={() => handleRequestDevice(device.id)}
+                  className="request-btn"
                 >
-                  Request
+                  Request Device
                 </button>
               </li>
             ))}
@@ -109,40 +115,22 @@ const UserDashboard = () => {
         </div>
       )}
 
-      <h3>Requested Devices</h3>
-      <ul>
-        {requestedDevices.map((device) => (
-          <li key={device.id}>
-            {device.id} - Requested on {device.requestDate}
-          </li>
-        ))}
-      </ul>
-
-      <h3>Allocated Devices</h3>
-      <ul>
-        {allocatedDevices.map((device) => (
-          <li key={device.id}>
-            {device.id}
-            <button onClick={() => handleReturnDevice(device.id)}>
-              Return
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <h3>Report Faulty Device</h3>
-      <button onClick={() => handleReportFaulty(1, 'Screen Issue')}>
-        Report Faulty
-      </button>
-
-      <h3>Faulty Devices</h3>
-      <ul>
-        {faultyDevices.map((device) => (
-          <li key={device.id}>
-            {device.deviceId} - {device.reason}
-          </li>
-        ))}
-      </ul>
+      {requestedDevices.length > 0 && (
+        <div className="requested-devices">
+          <h3>Your Requested Devices</h3>
+          <ul>
+            {requestedDevices.map((device) => (
+              <li key={device.id}>
+                <strong>Device ID:</strong> {device.id}
+                <br />
+                <strong>Purpose:</strong> {device.purpose}
+                <br />
+                <strong>Request Date:</strong> {device.requestDate}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
