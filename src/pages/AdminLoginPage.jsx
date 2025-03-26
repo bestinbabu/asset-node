@@ -1,16 +1,26 @@
-// src/pages/AdminLoginPage.js
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/pages/UserLoginPage.js
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase"; // Import Firebase authentication
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-const AdminLoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const UserLoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Integrate Firebase Auth for admin login
-    console.log("Admin login:", email, password);
+    setError(""); // Clear previous errors
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in successfully!");
+      navigate("/"); // Redirect to dashboard or home page
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -18,6 +28,7 @@ const AdminLoginPage = () => {
       <button onClick={() => navigate(-1)} style={styles.backButton}>Back</button>
 
       <h2>Admin Login</h2>
+      {error && <p style={styles.error}>{error}</p>}
       <form onSubmit={handleLogin} style={styles.form}>
         <input 
           type="email" 
@@ -45,33 +56,33 @@ const AdminLoginPage = () => {
 };
 
 const styles = {
-  container: { 
-    padding: '2rem',
-    textAlign: 'center'
-  },
+  container: { padding: "2rem", textAlign: "center" },
   backButton: {
-    position: 'absolute',
-    top: '1rem',
-    left: '1rem',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer'
+    position: "absolute",
+    top: "1rem",
+    left: "1rem",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
   },
   form: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '1rem'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "1rem",
   },
   input: {
-    padding: '0.5rem',
-    fontSize: '1rem',
-    width: '300px'
+    padding: "0.5rem",
+    fontSize: "1rem",
+    width: "300px",
   },
   button: {
-    padding: '0.5rem 1rem',
-    fontSize: '1rem',
-    cursor: 'pointer'
-  }
+    padding: "0.5rem 1rem",
+    fontSize: "1rem",
+    cursor: "pointer",
+  },
+  error: {
+    color: "red",
+  },
 };
 
-export default AdminLoginPage;
+export default UserLoginPage;
